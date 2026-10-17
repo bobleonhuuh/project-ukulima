@@ -1,0 +1,124 @@
+{% extends "base.html" %}
+{% block title %}Home{% endblock %}
+{% block body %}
+
+<section class="hero">
+  <div class="inner">
+    <span class="eyebrow"><i></i>{{ t('hero.eyebrow') }}</span>
+    <h1>{{ t('hero.title') }}</h1>
+    <p class="lead">{{ t('hero.subtitle') }}</p>
+    <div class="row cta">
+      {% if user %}
+        <a class="btn alt" href="{{ url_for('report_new') }}">{{ t('hero.cta.report') }}</a>
+        <a class="btn ghost-light" href="{{ url_for('outbreak_map') }}">{{ t('hero.cta.map') }}</a>
+      {% else %}
+        <a class="btn alt" href="{{ url_for('register') }}">{{ t('hero.cta.join') }}</a>
+        <a class="btn ghost-light" href="{{ url_for('login') }}">{{ t('nav.login') }}</a>
+      {% endif %}
+    </div>
+  </div>
+  <div class="hero-band"></div>
+</section>
+
+<div class="trust">
+  <span>🌍 <b>47</b> counties covered</span>
+  <span>🗣️ <b>English</b> &amp; <b>Kiswahili</b></span>
+  <span>📶 Light on data &amp; offline-ready</span>
+  <span>🧑‍🌾 Expert-verified advice</span>
+</div>
+
+<div class="grid g3">
+  <div class="card stat-card reveal"><div class="stat">{{ stats.reports }}</div><div>{{ t('stat.reports') }}</div></div>
+  <div class="card stat-card reveal"><div class="stat">{{ stats.verified }}</div><div>{{ t('stat.verified') }}</div></div>
+  <div class="card stat-card reveal"><div class="stat">{{ stats.counties }}</div><div>{{ t('stat.counties') }}</div></div>
+</div>
+
+<div class="sec-head">
+  <h2>{{ t('how.title') }}</h2><div class="rule"></div>
+</div>
+<div class="grid g3">
+  <div class="card reveal">
+    <h3><span class="step-num">1</span>{{ t('how.1.title') }}</h3>
+    <p class="muted">{{ t('how.1.body') }}</p>
+  </div>
+  <div class="card reveal">
+    <h3><span class="step-num">2</span>{{ t('how.2.title') }}</h3>
+    <p class="muted">{{ t('how.2.body') }}</p>
+  </div>
+  <div class="card reveal">
+    <h3><span class="step-num">3</span>{{ t('how.3.title') }}</h3>
+    <p class="muted">{{ t('how.3.body') }}</p>
+  </div>
+</div>
+
+<div class="two-col" style="margin-top:38px">
+  <div>
+    <div class="sec-head"><h2>Why Ukulima is different</h2><div class="rule"></div></div>
+    <div class="grid" style="gap:14px">
+      <div class="card reveal" style="display:flex;gap:16px;align-items:flex-start">
+        <div class="feature-icon" style="margin:0">🗣️</div>
+        <div><h3 style="margin-bottom:4px">Bilingual by design</h3><p class="muted" style="margin:0">Switch between English and Kiswahili anywhere in the app — advice reaches farmers in the language they think in.</p></div>
+      </div>
+      <div class="card reveal" style="display:flex;gap:16px;align-items:flex-start">
+        <div class="feature-icon" style="margin:0">🛰️</div>
+        <div><h3 style="margin-bottom:4px">Live outbreak intelligence</h3><p class="muted" style="margin:0">A county heatmap, trend chart and automatic early-warning alerts turn individual reports into shared protection.</p></div>
+      </div>
+      <div class="card reveal" style="display:flex;gap:16px;align-items:flex-start">
+        <div class="feature-icon" style="margin:0">🧑‍🌾</div>
+        <div><h3 style="margin-bottom:4px">Expert in the loop</h3><p class="muted" style="margin:0">Low-confidence or severe cases are escalated to extension officers, so AI advice is always human-checked.</p></div>
+      </div>
+    </div>
+  </div>
+
+  <div>
+    {% if top_pests %}
+    <div class="card pad-lg reveal">
+      <h3 style="margin-top:0">🔥 Most reported right now</h3>
+      {% set maxn = top_pests[0].n or 1 %}
+      {% for p in top_pests %}
+      <div class="pest-row">
+        <span style="min-width:120px;font-weight:700">{{ p.name }}</span>
+        <span class="pest-bar"><i style="width:{{ (p.n / maxn * 100) | round }}%"></i></span>
+        <b style="color:var(--terra)">{{ p.n }}</b>
+      </div>
+      {% endfor %}
+      <a class="btn ghost sm" style="margin-top:16px" href="{{ url_for('outbreak_map') }}">Open the map →</a>
+    </div>
+    {% else %}
+    <div class="card pad-lg reveal">
+      <h3 style="margin-top:0">🌱 Be the first to report</h3>
+      <p class="muted">No reports yet. Get a photo of a sick crop and Ukulima will suggest what's wrong and how to treat it safely.</p>
+      <a class="btn alt sm" href="{{ url_for('report_new') if user else url_for('register') }}">Get started →</a>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<a href="/" class="brand">
+    <img
+        src="{{ url_for('static', filename='img/logo.svg') }}"
+        alt="Ukulima leaf logo"
+        class="brand-logo"
+    >
+    <span>Ukulima</span>
+</a>
+
+
+{% if alerts %}
+<div class="sec-head"><h2>{{ t('alerts.latest') }}</h2><div class="rule"></div></div>
+{% for a in alerts %}
+<div class="alert {{ a.level if a.level != 'warning' else '' }} reveal">
+  <b>{{ a.county }}</b> &middot; <span class="muted small">{{ a.created }}</span><br>{{ a.message }}
+</div>
+{% endfor %}
+{% endif %}
+
+{% if not user %}
+<section class="card pad-lg center reveal" style="margin-top:40px;background:linear-gradient(140deg,var(--forest),var(--forest-2));border:0;color:#fff">
+  <h2 style="color:#fff">Ready to protect your farm?</h2>
+  <p style="color:#d8ece0;max-width:520px;margin:0 auto 22px">Join farmers across Kenya using Ukulima to catch pests and diseases before they spread. Free to use, in your language.</p>
+  <a class="btn alt" href="{{ url_for('register') }}">{{ t('hero.cta.join') }}</a>
+</section>
+{% endif %}
+
+{% endblock %}

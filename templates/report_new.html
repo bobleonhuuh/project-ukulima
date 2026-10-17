@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+{% block title %}{{ t('report.title') }}{% endblock %}
+{% block body %}
+<div class="sec-head"><h1 style="margin:0">{{ t('report.title') }}</h1><div class="rule"></div></div>
+<p class="muted">Fill in what you can — a photo and location make the AI advice far more accurate. Fields marked optional can be skipped.</p>
+
+<form method="post" enctype="multipart/form-data" class="card pad-lg mt" id="reportForm">
+  <input type="hidden" name="csrf" value="{{ csrf_token() }}">
+
+  <div class="field-grid">
+    <div>
+      <label for="crop">{{ t('report.crop') }}</label>
+      <select id="crop" name="crop" required>
+        <option value="">— Select —</option>
+        {% for c in crops %}<option value="{{ c }}" {{ 'selected' if form.get('crop')==c else '' }}>{{ c }}</option>{% endfor %}
+      </select>
+    </div>
+    <div>
+      <label for="county">{{ t('report.county') }}</label>
+      <select id="county" name="county" required>
+        <option value="">— Select —</option>
+        {% for c in counties %}<option value="{{ c }}" {{ 'selected' if form.get('county')==c else '' }}>{{ c }}</option>{% endfor %}
+      </select>
+    </div>
+  </div>
+
+  <label>{{ t('report.symptoms') }}</label>
+  <div class="checks">
+    {% for tag in tags %}
+    <label><input type="checkbox" name="tags" value="{{ tag }}" {{ 'checked' if tag in form.getlist('tags') else '' }}> {{ tag }}</label>
+    {% endfor %}
+  </div>
+
+  <label for="symptoms">{{ t('report.describe') }}</label>
+  <textarea id="symptoms" name="symptoms" maxlength="1000" placeholder="e.g. maize leaves with holes and sawdust-like droppings in the whorl">{{ form.get('symptoms','') }}</textarea>
+
+  <div class="field-grid">
+    <div>
+      <label for="growth_stage">{{ t('report.growth') }}</label>
+      <select id="growth_stage" name="growth_stage">
+        {% for s in ['Seedling','Vegetative','Flowering','Mature','Not sure'] %}
+        <option value="{{ s }}" {{ 'selected' if form.get('growth_stage')==s else '' }}>{{ s }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div>
+      <label>{{ t('report.severity') }}</label>
+      <div class="seg">
+        {% for s,label in [('low',t('sev.low')),('medium',t('sev.medium')),('high',t('sev.high'))] %}
+        <label><input type="radio" name="severity" value="{{ s }}" {{ 'checked' if (form.get('severity') or 'medium')==s else '' }}><span>{{ label }}</span></label>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <label for="photo">{{ t('report.photo') }}</label>
+  <label class="file-drop" for="photo" id="drop">
+    <input id="photo" type="file" name="photo" accept="image/png,image/jpeg,image/webp" capture="environment">
+    <div class="big">📷</div>
+    <div id="dropText"><b>Tap to add a photo</b><br><span class="small muted">PNG, JPG or WEBP · up to 8 MB</span></div>
+    <img id="preview" class="hidden" alt="Preview" style="max-height:220px;border-radius:12px;margin-top:12px">
+  </label>
+
+  <label>{{ t('report.location') }}</label>
+  <div class="row">
+    <button type="button" class="btn ghost sm" id="gpsBtn">📍 {{ t('report.use_gps') }}</button>
+    <span id="gpsStatus" class="small muted">Optional — we round your location to ~1 km to protect your farm.</span>
+  </div>
+  <input type="hidden" name="lat" id="lat" value="{{ form.get('lat','') }}">
+  <input type="hidden" name="lng" id="lng" value="{{ form.get('lng','') }}">
+
+  <div class="row mt" style="margin-top:26px">
+    <button class="btn" type="submit">{{ t('report.submit') }}</button>
+    <a class="btn ghost" href="{{ url_for('knowledge') }}">Browse the pest library</a>
+  </div>
+</form>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/report.js') }}"></script>
+{% endblock %}

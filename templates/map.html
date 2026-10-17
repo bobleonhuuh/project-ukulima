@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block title %}{{ t('nav.map') }}{% endblock %}
+{% block head %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+{% endblock %}
+{% block body %}
+<div class="sec-head"><h1 style="margin:0">{{ t('nav.map') }}</h1><div class="rule"></div></div>
+<p class="muted">Each pin is a report (location rounded to ~1 km). The heatmap shows where problems cluster; the trend shows reports over time.</p>
+
+<div class="map-toolbar">
+  <div>
+    <label for="cropFilter" style="margin:0">Crop</label>
+    <select id="cropFilter">
+      <option value="">All crops</option>
+      {% for c in crops %}<option value="{{ c }}">{{ c }}</option>{% endfor %}
+    </select>
+  </div>
+  <div>
+    <label for="daysFilter" style="margin:0">Period</label>
+    <select id="daysFilter">
+      <option value="14">Last 14 days</option>
+      <option value="30" selected>Last 30 days</option>
+      <option value="60">Last 60 days</option>
+      <option value="180">Last 6 months</option>
+    </select>
+  </div>
+  <div class="row" style="gap:8px;margin-left:auto">
+    <button class="btn sm ghost" id="toggleHeat">🔥 Heatmap</button>
+    <button class="btn sm ghost" id="togglePins">📍 Pins</button>
+  </div>
+</div>
+
+<div id="map"></div>
+<div class="legend">
+  <span><i style="background:#2f8a5b"></i>Low severity</span>
+  <span><i style="background:#e0a32e"></i>Medium</span>
+  <span><i style="background:#c1553a"></i>High</span>
+  <span><i style="background:#143d2b"></i>Verified by officer</span>
+</div>
+
+<div class="chart-card mt" style="margin-top:26px">
+  <h3 style="margin-top:0">📈 Reports over time</h3>
+  <canvas id="trendChart"></canvas>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="{{ url_for('static', filename='js/map.js') }}"></script>
+{% endblock %}

@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}{{ t('nav.login') }}{% endblock %}
+{% block body %}
+<div class="auth-wrap">
+  <div class="auth-card">
+    <h1>{{ t('auth.login_title') }}</h1>
+    <p class="muted">Log in to report crop problems and track your farm.</p>
+    <form method="post">
+      <input type="hidden" name="csrf" value="{{ csrf_token() }}">
+      <label for="email">{{ t('auth.email') }}</label>
+      <input id="email" type="email" name="email" required autocomplete="email" autofocus>
+      <label for="password">{{ t('auth.password') }}</label>
+      <input id="password" type="password" name="password" required autocomplete="current-password">
+      <button class="btn block mt" type="submit">{{ t('nav.login') }}</button>
+    </form>
+    <p class="small muted mt center">New here? <a href="{{ url_for('register') }}">{{ t('auth.register_title') }}</a></p>
+    <div class="note green small" style="margin-top:18px">
+      <b>Demo logins</b> (appear after Step 7 seeding)<br>
+      farmer@ukulima.com / Farmer123!<br>
+      officer@ukulima.com / Officer123!<br>
+      admin@ukulima.com / Admin123!<br>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block title %}{{ t('nav.review') }}{% endblock %}
+{% block body %}
+<div class="sec-head"><h1 style="margin:0">{{ t('nav.review') }}</h1><div class="rule"></div></div>
+<p class="muted">Escalated and low-confidence cases appear first. Your decision is shown to the farmer immediately.</p>
+
+<div class="filters">
+  <a href="{{ url_for('officer', filter='pending') }}" class="{{ 'on' if filter=='pending' else '' }}">Pending</a>
+  <a href="{{ url_for('officer', filter='done') }}" class="{{ 'on' if filter=='done' else '' }}">Reviewed</a>
+  <a href="{{ url_for('officer', filter='all') }}" class="{{ 'on' if filter=='all' else '' }}">All</a>
+</div>
+
+{% if rows %}
+<div class="grid g2">
+  {% for r in rows %}
+  <div class="card">
+    <div class="row" style="justify-content:space-between;align-items:flex-start">
+      <div>
+        <b style="font-size:1.1rem">#{{ r.id }} · {{ r.crop }}</b>
+        <div class="small muted">{{ r.county }} · {{ r.created[:10] }} · by {{ r.farmer_name }}</div>
+      </div>
+      <div class="row" style="gap:6px">
+        {% if r.escalated %}<span class="badge b-esc">escalated</span>{% endif %}
+        <span class="badge b-{{ r.severity }}">{{ r.severity }}</span>
+        <span class="badge b-{{ r.status }}">{{ r.status }}</span>
+      </div>
+    </div>
+
+    <div class="row mt" style="gap:14px;align-items:flex-start">
+      {% if r.photo %}<img src="{{ url_for('uploads', name=r.photo) }}" alt="" style="width:96px;height:96px;object-fit:cover;border-radius:12px;border:1px solid var(--line);flex:none">{% endif %}
+      <div style="flex:1">
+        <div class="small muted">AI suggests</div>
+        <div style="font-weight:800;color:var(--terra)">{{ r.ai_label | pest }} · {{ (r.ai_conf*100)|round|int }}%</div>
+        {% if r.symptoms %}<div class="small mt">“{{ r.symptoms[:120] }}”</div>{% endif %}
+        <a class="small" href="{{ url_for('report_view', rid=r.id) }}">Open full report →</a>
+      </div>
+    </div>
+
+    {% if r.status == 'pending' %}
+    <form method="post" action="{{ url_for('review', rid=r.id) }}" class="mt">
+      <input type="hidden" name="csrf" value="{{ csrf_token() }}">
+      <div class="field-grid">
+        <div>
+          <label for="label{{ r.id }}" style="margin-top:8px">Decision</label>
+          <select id="label{{ r.id }}" name="label" required>
+            <option value="unknown">Unknown / needs expert</option>
+            {% for kid,item in kb.items() %}
+            <option value="{{ kid }}" {{ 'selected' if kid==r.ai_label else '' }}>{{ item.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div>
+          <label for="notes{{ r.id }}" style="margin-top:8px">Note (optional)</label>
+          <input id="notes{{ r.id }}" type="text" name="notes" maxlength="1000" placeholder="Guidance for the farmer">
+        </div>
+      </div>
+      <button class="btn green sm mt" type="submit">Save review</button>
+    </form>
+    {% elif r.officer_notes %}
+    <div class="note green small mt"><b>{{ r.officer_label | pest }}</b> — {{ r.officer_notes }}</div>
+    {% endif %}
+  </div>
+  {% endfor %}
+</div>
+{% else %}
+<div class="empty"><span class="big">✅</span>Nothing in this queue. Nice work.</div>
+{% endif %}
+{% endblock %}

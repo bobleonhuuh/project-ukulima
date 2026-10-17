@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}{{ t('nav.my_reports') }}{% endblock %}
+{% block body %}
+<div class="sec-head">
+  <h1 style="margin:0">{{ t('nav.my_reports') }}</h1>
+  <a class="btn alt sm" href="{{ url_for('report_new') }}">+ {{ t('nav.new_report') }}</a>
+</div>
+
+{% if rows %}
+<div class="tablewrap">
+  <table>
+    <thead><tr><th>#</th><th>Crop</th><th>County</th><th>Identified as</th><th>Severity</th><th>Status</th><th>Date</th><th></th></tr></thead>
+    <tbody>
+    {% for r in rows %}
+      {% set lbl = r.officer_label or r.ai_label %}
+      <tr>
+        <td>{{ r.id }}</td>
+        <td>{{ r.crop }}</td>
+        <td>{{ r.county }}</td>
+        <td>{{ lbl | pest }}</td>
+        <td><span class="badge b-{{ r.severity }}">{{ r.severity }}</span></td>
+        <td><span class="badge b-{{ r.status }}">{{ r.status }}</span>{% if r.escalated %} <span class="badge b-esc">esc</span>{% endif %}</td>
+        <td class="small muted">{{ r.created[:10] }}</td>
+        <td><a class="btn ghost sm" href="{{ url_for('report_view', rid=r.id) }}">View</a></td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+<div class="empty"><span class="big">🌱</span>No reports yet.<br><a class="btn alt sm mt" href="{{ url_for('report_new') }}">Submit your first report</a></div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+{% block title %}Report #{{ r.id }}{% endblock %}
+{% block body %}
+<div class="row" style="justify-content:space-between;align-items:center;margin:22px 0 8px">
+  <h1 style="margin:0">Report #{{ r.id }} · {{ r.crop }}</h1>
+  <a class="btn ghost sm" href="{{ url_for('my_reports') if user.role=='farmer' else url_for('officer') }}">← {{ t('common.back') }}</a>
+</div>
+<div class="row mb">
+  <span class="badge b-{{ r.status }}">{{ r.status }}</span>
+  <span class="badge b-{{ r.severity }}">{{ r.severity }} severity</span>
+  {% if r.escalated %}<span class="badge b-esc">escalated to expert</span>{% endif %}
+  <span class="pill">📍 {{ r.county }}</span>
+  <span class="pill">🕒 {{ r.created }}</span>
+</div>
+
+<div class="two-col">
+  <div>
+    {% if r.photo %}
+      <img class="photo mb" src="{{ url_for('uploads', name=r.photo) }}" alt="Farmer photo for report {{ r.id }}">
+    {% endif %}
+
+    <div class="card mb">
+      <h3 style="margin-top:0">Farmer's observations</h3>
+      <dl class="kv">
+        <dt>Crop</dt><dd>{{ r.crop }}</dd>
+        <dt>County</dt><dd>{{ r.county }}</dd>
+        <dt>Growth stage</dt><dd>{{ r.growth_stage or '—' }}</dd>
+        <dt>Reported by</dt><dd>{{ r.farmer_name }}</dd>
+      </dl>
+      {% if tags %}
+      <div class="mt">
+        {% for tag in tags %}<span class="tag-chip">{{ tag }}</span>{% endfor %}
+      </div>
+      {% endif %}
+      {% if r.symptoms %}<p class="mt" style="margin-bottom:0">“{{ r.symptoms }}”</p>{% endif %}
+    </div>
+
+    <div class="card">
+      <h3 style="margin-top:0">🤖 AI diagnosis</h3>
+      {% if k %}
+        <div style="font-size:1.3rem;font-weight:800;color:var(--terra);font-family:var(--font-display)">{{ k.name }}</div>
+        <div class="small muted">{{ k.type }} · affects {{ k.crops | join(', ') }} · <a href="{{ url_for('knowledge_item', kid=k.id) }}">full library entry →</a></div>
+      {% else %}
+        <div style="font-size:1.2rem;font-weight:800;color:var(--muted)">Not yet identified</div>
+        <div class="small muted">An extension officer will review this case.</div>
+      {% endif %}
+      <div class="mt">
+        <div class="row" style="justify-content:space-between"><span class="small muted">{{ t('common.confidence') }}</span><b>{{ (r.ai_conf * 100) | round | int }}%</b></div>
+        <div class="conf"><i data-width="{{ (r.ai_conf * 100) | round | int }}"></i></div>
+        <div class="small muted" style="margin-top:6px">Source: {{ r.ai_source }}</div>
+      </div>
+      {% if alts %}
+      <div class="mt">
+        <div class="small muted" style="margin-bottom:6px">Other possibilities:</div>
+        {% for a in alts %}<span class="tag-chip">{{ a | pest }}</span>{% endfor %}
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <div>
+    {% if r.officer_notes %}
+    <div class="note green mb">
+      <b>Officer decision</b><br>
+      {{ r.officer_label | pest }} · {{ r.reviewed }}<br>
+      {{ r.officer_notes }}
+    </div>
+    {% endif %}
+
+    {% if k %}
+    <div class="card advice">
+      <h3 style="margin-top:0">🌿 {{ t('common.advice') }}</h3>
+      <h3>🧑‍🌾 Cultural control</h3><ul>{% for x in k.advice.cultural %}<li>{{ x }}</li>{% endfor %}</ul>
+      <h3>🐞 Biological</h3><ul>{% for x in k.advice.biological %}<li>{{ x }}</li>{% endfor %}</ul>
+      <h3>⚗️ Chemical (use with care)</h3><ul>{% for x in k.advice.chemical %}<li>{{ x }}</li>{% endfor %}</ul>
+      <h3>🛡️ Prevention</h3><ul>{% for x in k.advice.prevention %}<li>{{ x }}</li>{% endfor %}</ul>
+      <div class="note small mt">Always follow the product label and use PCPB-registered products. Ask your extension officer before spraying.</div>
+    </div>
+    {% endif %}
+
+    {% if user.role in ('officer','admin') and r.status == 'pending' %}
+    <div class="card mt">
+      <h3 style="margin-top:0">✅ Review this report</h3>
+      <form method="post" action="{{ url_for('review', rid=r.id) }}">
+        <input type="hidden" name="csrf" value="{{ csrf_token() }}">
+        <label for="label">Correct identification</label>
+        <select id="label" name="label" required>
+          <option value="unknown">Unknown / needs expert</option>
+          {% for kid,item in kb.items() %}
+          <option value="{{ kid }}" {{ 'selected' if kid==r.ai_label else '' }}>{{ item.name }} ({{ item.type }})</option>
+          {% endfor %}
+        </select>
+        <label for="notes">Notes for the farmer</label>
+        <textarea id="notes" name="notes" maxlength="1000" placeholder="Add local context, product guidance or follow-up..."></textarea>
+        <button class="btn green block mt" type="submit">Save review</button>
+      </form>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

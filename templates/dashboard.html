@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
+{% block body %}
+<div class="card pad-lg center" style="max-width:640px;margin:40px auto">
+  <h1>Karibu, {{ user.name }} 👋</h1>
+  <p class="muted">You are logged in as <b>{{ user.role }}</b>. Your dashboard fills up in the next steps — reports, the review queue and admin tools are coming.</p>
+  <div class="row" style="justify-content:center;margin-top:18px">
+    <a class="btn alt" href="{{ url_for('index') }}">Back to home</a>
+    <form method="post" action="{{ url_for('logout') }}" class="inline">
+      <input type="hidden" name="csrf" value="{{ csrf_token() }}">
+      <button class="btn ghost" type="submit">{{ t('nav.logout') }}</button>
+    </form>
+  </div>
+</div>
+{% endblock %}
