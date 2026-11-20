@@ -24,7 +24,11 @@ def main():
     try:
         for name, email, pw, role, county in STAFF:
             if con.execute("SELECT 1 FROM users WHERE email=?", (email,)).fetchone():
-                print(f"= exists   {email} ({role})")
+                con.execute(
+                    "UPDATE users SET name=?,password=?,role=?,county=? WHERE email=?",
+                    (name, generate_password_hash(pw), role, county, email))
+                con.commit()
+                print(f"~ reset    {email} / {pw}  ({role})")
                 continue
             con.execute(
                 "INSERT INTO users(name,email,phone,password,role,county,created) VALUES(?,?,?,?,?,?,?)",

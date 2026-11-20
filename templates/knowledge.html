@@ -3,6 +3,7 @@
 {% block body %}
 <div class="sec-head"><h1 style="margin:0">{{ t('nav.library') }}</h1><div class="rule"></div></div>
 <p class="muted">Curated, expert-reviewable guidance on the pests and diseases most common in Kenya. Filter by crop.</p>
+<p class="small muted">Reference photographs were taken in Kenya. Open an entry for photo sources and licences. Some photos are licensed for non-commercial use only.</p>
 
 <form method="get" class="map-toolbar">
   <div>
@@ -18,7 +19,14 @@
 <div class="grid g3">
   {% for k in items %}
   <a class="card reveal" href="{{ url_for('knowledge_item', kid=k.id) }}" style="text-decoration:none;color:inherit;display:block">
-    <div class="feature-icon">{{ '🐛' if k.type=='Pest' else '🦠' }}</div>
+    {% if k.photo %}
+    <figure class="kb-photo kb-thumbnail">
+      <img src="{{ url_for('static', filename=k.photo.file) }}" alt="{{ k.photo.alt }}" width="{{ k.photo.width }}" height="{{ k.photo.height }}" loading="lazy">
+      <figcaption class="small muted"><strong>{{ k.photo.location }}</strong>{{ k.photo.author }} · {{ k.photo.license }}</figcaption>
+    </figure>
+    {% else %}
+    <div class="kb-photo-missing"><strong>Photo unavailable</strong><span class="small">{{ k.name }}</span></div>
+    {% endif %}
     <h3 style="margin-bottom:4px">{{ k.name }}</h3>
     <div class="small muted mb"><span class="pill">{{ k.type }}</span></div>
     <p class="small muted" style="margin-bottom:10px">{{ k.description[:110] }}…</p>

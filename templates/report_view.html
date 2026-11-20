@@ -49,6 +49,23 @@
         <div class="conf"><i data-width="{{ (r.ai_conf * 100) | round | int }}"></i></div>
         <div class="small muted" style="margin-top:6px">Source: {{ r.ai_source }}</div>
       </div>
+      {% if k %}
+      <h3 class="mt">Kenyan reference photo</h3>
+      {% if k.photo %}
+      <figure class="kb-photo">
+        <img src="{{ url_for('static', filename=k.photo.file) }}" alt="{{ k.photo.alt }}" width="{{ k.photo.width }}" height="{{ k.photo.height }}" loading="lazy">
+        <figcaption class="small muted">
+          <strong>{{ k.photo.location }}</strong>
+          <a href="{{ k.photo.source }}" target="_blank" rel="noopener noreferrer">{{ k.photo.title }}</a> — {{ k.photo.author }} ·
+          <a href="{{ k.photo.license_url }}" target="_blank" rel="noopener noreferrer">{{ k.photo.license }}</a>.<br>
+          Resized for display. Compare with your plant; this photo does not confirm the diagnosis.
+          {% if k.photo.note %}<br>{{ k.photo.note }}{% endif %}
+        </figcaption>
+      </figure>
+      {% else %}
+      <div class="kb-photo-missing"><strong>Photo unavailable</strong><span class="small">No reference photo has been added for {{ k.name }}.</span></div>
+      {% endif %}
+      {% endif %}
       {% if alts %}
       <div class="mt">
         <div class="small muted" style="margin-bottom:6px">Other possibilities:</div>

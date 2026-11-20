@@ -10,6 +10,20 @@
 
 <div class="two-col">
   <div class="card">
+    {% if k.photo %}
+    <figure class="kb-photo">
+      <img src="{{ url_for('static', filename=k.photo.file) }}" alt="{{ k.photo.alt }}" width="{{ k.photo.width }}" height="{{ k.photo.height }}">
+      <figcaption class="small muted">
+        <strong>{{ k.photo.location }}</strong>
+        <a href="{{ k.photo.source }}" target="_blank" rel="noopener noreferrer">{{ k.photo.title }}</a> — {{ k.photo.author }} ·
+        <a href="{{ k.photo.license_url }}" target="_blank" rel="noopener noreferrer">{{ k.photo.license }}</a>.<br>
+        Resized for display. Reference photo only, not a diagnosis.
+        {% if k.photo.note %}<br>{{ k.photo.note }}{% endif %}
+      </figcaption>
+    </figure>
+    {% else %}
+    <div class="kb-photo-missing"><strong>Photo unavailable</strong><span class="small">No reference photo has been added for {{ k.name }}.</span></div>
+    {% endif %}
     <h3 style="margin-top:0">About</h3>
     <p>{{ k.description }}</p>
     <h3>What to look for</h3>

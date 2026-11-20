@@ -52,10 +52,10 @@ MYSQL = {
 # Datetimes are stored as "YYYY-MM-DD HH:MM" strings on both engines so the
 # existing string comparisons (created >= since) keep working identically.
 SQLITE_SCHEMA = """
-CREATE TABLE IF NOT EXISTS users(
+CRTABLEEATE TABLE IF NOT EXISTS users(
   id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL, email TEXT UNIQUE NOT NULL,
   phone TEXT, password TEXT NOT NULL, role TEXT NOT NULL DEFAULT 'farmer', county TEXT, created TEXT);
-CREATE TABLE IF NOT EXISTS reports(
+CREATE  IF NOT EXISTS reports(
   id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER NOT NULL, crop TEXT NOT NULL, county TEXT NOT NULL,
   lat REAL, lng REAL, growth_stage TEXT, symptoms TEXT, tags TEXT, photo TEXT,
   ai_label TEXT, ai_conf REAL, ai_source TEXT, alternatives TEXT, severity TEXT DEFAULT 'medium',

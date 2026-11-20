@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% block title %}{{ t('nav.ask') }}{% endblock %}
+{% block body %}
+<div class="sec-head"><h1 style="margin:0">{{ t('assistant.title') }}</h1><div class="rule"></div></div>
+<p class="muted">{{ t('assistant.subtitle') }}</p>
+
+<div class="assistant-grid">
+  <section class="chat-shell" aria-label="{{ t('nav.ask') }}">
+    <div class="chat-head">
+      <div class="chat-id">
+        <span class="chat-avatar"><img src="{{ url_for('static', filename='img/logo.svg') }}" alt=""></span>
+        <div>
+          <b>Ukulima AI</b>
+          <span class="chat-status"><i></i>{{ t('assistant.online') }}{% if county %} · {{ county }}{% endif %}</span>
+        </div>
+      </div>
+      <button class="btn sm ghost" id="newChat">✚ {{ t('assistant.new') }}</button>
+    </div>
+
+    <div class="chat-log" id="chatLog" aria-live="polite"></div>
+
+    <div class="chat-quick" id="quickRow">
+      <button class="chip" type="button">{{ t('assistant.q1') }}</button>
+      <button class="chip" type="button">{{ t('assistant.q2') }}</button>
+      <button class="chip" type="button">{{ t('assistant.q3') }}</button>
+      <button class="chip" type="button">{{ t('assistant.q4') }}</button>
+    </div>
+
+    <form class="chat-composer" id="chatForm">
+      <textarea id="chatInput" rows="1" maxlength="600" placeholder="{{ t('assistant.placeholder') }}"
+                aria-label="{{ t('assistant.placeholder') }}"></textarea>
+      <button class="btn send" id="sendBtn" type="submit" aria-label="{{ t('assistant.send') }}">➤</button>
+    </form>
+    <div class="chat-foot">
+      <span id="charCount">0 / 600</span>
+      <span>{{ t('assistant.disclaimer') }}</span>
+    </div>
+  </section>
+
+  <aside class="assistant-side">
+    <div class="card">
+      <h3 style="margin-top:0">🧠 {{ t('assistant.help_title') }}</h3>
+      <ul class="cap-list">
+        <li><b>{{ t('assistant.cap1_t') }}</b><span>{{ t('assistant.cap1_b') }}</span></li>
+        <li><b>{{ t('assistant.cap2_t') }}</b><span>{{ t('assistant.cap2_b') }}</span></li>
+        <li><b>{{ t('assistant.cap3_t') }}</b><span>{{ t('assistant.cap3_b') }}</span></li>
+        <li><b>{{ t('assistant.cap4_t') }}</b><span>{{ t('assistant.cap4_b') }}</span></li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3 style="margin-top:0">🌾 {{ t('assistant.crops_title') }}</h3>
+      <div class="crop-chips">
+        {% for c in crops %}{% if c != 'Other' %}<a class="chip" href="{{ url_for('knowledge', crop=c) }}">{{ c }}</a>{% endif %}{% endfor %}
+      </div>
+      <p class="hint" style="margin-top:12px">{{ t('assistant.crops_hint') }}</p>
+    </div>
+    <div class="note green">🛡️ {{ t('assistant.safety') }}</div>
+  </aside>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+window.CHAT_META = {
+  name: {{ (user.name.split()[0] if user.name else '')|tojson }},
+  county: {{ county|tojson }},
+  lang: {{ lang|tojson }},
+  welcome: {{ t('assistant.welcome')|tojson }},
+  thinking: {{ t('assistant.thinking')|tojson }},
+  error: {{ t('assistant.error')|tojson }},
+  retry: {{ t('assistant.retry')|tojson }},
+  related: {{ t('assistant.related')|tojson }}
+};
+</script>
+<script src="{{ url_for('static', filename='js/chat.js') }}"></script>
+{% endblock %}

@@ -78,10 +78,15 @@
       {% for p in top_pests %}
       <div class="pest-row">
         <span style="min-width:120px;font-weight:700">{{ p.name }}</span>
-        <span class="pest-bar"><i style="width:{{ (p.n / maxn * 100) | round }}%"></i></span>
+        <span class="pest-bar"><i data-width="{{ (p.n / maxn * 100) | round }}"></i></span>
         <b style="color:var(--terra)">{{ p.n }}</b>
       </div>
       {% endfor %}
+      <script>
+        document.querySelectorAll('.pest-bar i[data-width]').forEach(function (bar) {
+          bar.style.width = bar.dataset.width + '%';
+        });
+      </script>
       <a class="btn ghost sm" style="margin-top:16px" href="{{ url_for('outbreak_map') }}">Open the map →</a>
     </div>
     {% else %}
@@ -93,16 +98,6 @@
     {% endif %}
   </div>
 </div>
-
-<a href="/" class="brand">
-    <img
-        src="{{ url_for('static', filename='img/logo.svg') }}"
-        alt="Ukulima leaf logo"
-        class="brand-logo"
-    >
-    <span>Ukulima</span>
-</a>
-
 
 {% if alerts %}
 <div class="sec-head"><h2>{{ t('alerts.latest') }}</h2><div class="rule"></div></div>

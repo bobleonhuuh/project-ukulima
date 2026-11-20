@@ -7,8 +7,7 @@ from datetime import datetime, timedelta, timezone
 from functools import wraps
 
 from flask import (Flask, abort, flash, g, jsonify, redirect, render_template,
-                   render_template_string, request, send_from_directory,
-                   session, url_for)
+                   request, send_from_directory, session, url_for)
 from werkzeug.datastructures import MultiDict
 from werkzeug.security import check_password_hash, generate_password_hash
 from werkzeug.utils import secure_filename
@@ -423,29 +422,66 @@ def api_trend():
 
 
 
-_PLACEHOLDER = """<!doctype html><meta charset="utf-8">
-<title>Coming soon · Ukulima</title>
-<body style="font-family:system-ui;background:#f6efe1;color:#143d2b;padding:60px;text-align:center">
-<h1>Coming in a later step</h1>
-<p>The <b>{{ name }}</b> page is built in a later step.</p>
-<p><a href="{{ url_for('index') }}">&larr; Back to the landing page</a></p>
-</body>"""
-
-
-def soon(name):
-    return render_template_string(_PLACEHOLDER, name=name)
-
-
 @app.route("/admin")
 @login_required("admin")
 def admin():
-    return soon("Admin")
+    d = db()
+    q = request.args.get("q", "").strip().lower()
+    users = d.execute("SELECT id,name,email,phone,role,county,created FROM users ORDER BY id").fetchall()
+    if q:
+        users = [u for u in users if q in (u["name"] or "").lower() or q in (u["email"] or "").lower()
+                 or q in (u["county"] or "").lower()]
+    stats = dict(
+        users=d.execute("SELECT COUNT(*) c FROM users").fetchone()["c"],
+        officers=d.execute("SELECT COUNT(*) c FROM users WHERE role IN ('officer','admin')").fetchone()["c"],
+        reports=d.execute("SELECT COUNT(*) c FROM reports").fetchone()["c"],
+        pending=d.execute("SELECT COUNT(*) c FROM reports WHERE status='pending'").fetchone()["c"],
+        alerts=d.execute("SELECT COUNT(*) c FROM alerts").fetchone()["c"])
+    recent = d.execute(
+        """SELECT r.id, r.crop, r.county, r.status, r.created, u.name farmer FROM reports r
+           JOIN users u ON u.id=r.user_id ORDER BY r.id DESC LIMIT 8""").fetchall()
+    return render_template("admin.html", users=users, stats=stats, recent=recent, q=q)
+
+
+@app.route("/admin/user/<int:uid>/role", methods=["POST"])
+@login_required("admin")
+def admin_role(uid):
+    if uid == session["uid"]:
+        flash("You cannot change your own role.", "error")
+    else:
+        role = request.form.get("role")
+        if role in ("farmer", "officer", "admin"):
+            db().execute("UPDATE users SET role=? WHERE id=?", (role, uid))
+            db().commit()
+            flash("Role updated.", "success")
+        else:
+            flash("Unknown role.", "error")
+    return redirect(url_for("admin"))
 
 
 @app.route("/assistant")
 @login_required()
 def assistant():
-    return soon("Ask Ukulima")
+    u = current_user()
+    return render_template("assistant.html", crops=ai.CROPS, county=u["county"] or "")
+
+
+@app.route("/api/chat", methods=["POST"])
+@login_required()
+def api_chat():
+    data = request.get_json(silent=True) or {}
+    question = (data.get("question") or "").strip()[:600]
+    if not question:
+        return jsonify(error="Please type a question."), 400
+    u = current_user()
+    alerts = db().execute("SELECT county,message,level,created FROM alerts ORDER BY id DESC LIMIT 6").fetchall()
+    context = {"name": (u["name"] or "").split()[0] if u["name"] else "",
+               "county": u["county"], "role": u["role"],
+               "alerts": [dict(a) for a in alerts]}
+    result = ai.chat_reply(question, context)
+    result["related"] = [{"id": i, "name": ai.KB_BY_ID[i]["name"]}
+                         for i in result.get("related", []) if i in ai.KB_BY_ID]
+    return jsonify(result)
 
 
 # ---------- errors ----------
